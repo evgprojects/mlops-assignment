@@ -1,0 +1,48 @@
+ssh evgeny@89.169.123.201 -i ~/.ssh/id_ed25519
+git clone https://github.com/evgprojects/mlops-assignment.git
+cd mlops-assignment
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source $HOME/.local/bin/env
+uv sync
+cp .env.example .env
+uv run python scripts/load_data.py
+sudo usermod -aG docker $USER
+newgrp docker
+docker compose up -d
+
+LANGFUSE_SECRET_KEY="sk-lf-82850651-9848-4bc8-8400-935322f4fe5a"
+LANGFUSE_PUBLIC_KEY="pk-lf-09d5233e-e70f-462f-b999-73de92f732f4"
+LANGFUSE_BASE_URL="http://localhost:3001"
+
+sudo apt-get update && sudo apt-get install -y python3.12-dev build-essential
+scripts/start_vllm.sh
+
+
+
+curl -X POST http://localhost:8001/answer \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What is the coordinates location of the circuits for Australian grand prix?", "db_id": "formula_1", "gold_sql": "SELECT DISTINCT T1.lat, T1.lng FROM circuits AS T1 INNER JOIN races AS T2 ON T2.circuitID = T1.circuitId WHERE T2.name = 'Australian Grand Prix'"}'
+  
+  
+  
+  curl http://localhost:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain vLLM in one sentence"
+      }
+    ]    
+  }'
+
+uv run uvicorn agent.server:app --host 0.0.0.0 --port 8001
+
+uv run evals/run_eval.py 
+
+ssh -L 3000:localhost:3000 \
+    -L 9090:localhost:9090 \
+    -L 3001:localhost:3001 \
+    -L 8000:localhost:8000 \
+    -L 8001:localhost:8001 \
+    evgeny@89.169.123.201 -i ~/.ssh/id_ed25519
