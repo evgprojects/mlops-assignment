@@ -55,13 +55,34 @@ class AgentState:
     history: list[dict[str, Any]] = field(default_factory=list)
 
 
-def llm() -> ChatOpenAI:
-    """Chat client pointed at VLLM_BASE_URL (your local vLLM by default)."""
+# JSON schema the verify node constrains its output to. Passed to vLLM as
+# `guided_json` so the reply is always parseable - protects against the
+# fail-open path in _parse_verify silently skipping a needed revision.
+VERIFY_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "ok": {"type": "boolean"},
+        "issue": {"type": "string"},
+    },
+    "required": ["ok", "issue"],
+    "additionalProperties": False,
+}
+
+
+def llm(max_tokens: int = 512, extra_body: dict | None = None) -> ChatOpenAI:
+    """Chat client pointed at VLLM_BASE_URL (your local vLLM by default).
+
+    `max_tokens` is bounded so a runaway generation can't blow the per-run
+    latency budget. `extra_body` forwards vLLM-specific params (e.g.
+    guided_json for constrained decoding) through the OpenAI-compatible API.
+    """
     return ChatOpenAI(
         model=VLLM_MODEL,
         base_url=VLLM_BASE_URL,
         api_key=LLM_API_KEY,
         temperature=0.0,
+        max_tokens=max_tokens,
+        model_kwargs={"extra_body": extra_body} if extra_body else {},
     )
 
 
@@ -142,7 +163,7 @@ def verify_node(state: AgentState) -> dict:
     in the README.
     """
     result = state.execution.render() if state.execution else "ERROR: no execution result"
-    response = llm().invoke([
+    response = llm(max_tokens=128, extra_body={"guided_json": VERIFY_SCHEMA}).invoke([
         ("system", prompts.VERIFY_SYSTEM),
         ("user", prompts.VERIFY_USER.format(
             question=state.question,
