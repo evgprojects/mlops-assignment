@@ -97,7 +97,29 @@ after tuning
 }
 ```
 
+baseline
+```
+evgeny@computeinstance-e00m2j5x6myy7h1py7:~/mlops-assignment$ uv run python load_test/driver.py --rps 10 --duration 300
+{
+  "requested_rps": 10.0,
+  "duration_seconds": 300,
+  "wall_clock_seconds": 360.0035142329998,
+  "total_requests": 3000,
+  "achieved_rps": 8.333251986141319,
+  "ok": 2359,
+  "timeouts": 137,
+  "http_errors": 402,
+  "client_errors": 102,
+  "latency_p50": 79.7310095519988,
+  "latency_p95": 117.85794400499981,
+  "latency_p99": 119.77713574300105,
+  "latency_max": 120.88763312999981
+}
 
+```
+
+
+after
 ```
 evgeny@computeinstance-e00m2j5x6myy7h1py7:~/mlops-assignment$ uv run python load_test/driver.py --rps 10 --duration 300
 {
