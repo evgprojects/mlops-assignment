@@ -21,46 +21,49 @@
 
 
 
+```
+(EngineCore_DP0 pid=140653) ValueError: To serve at least one request with the models's max seq len (262144), (24.00 GiB KV cache is needed, which is larger than the available KV cache memory (8.68 GiB). Based on the available memory, the estimated maximum model length is 94784. Try increasing `gpu_memory_utilization` or decreasing `max_model_len` when initializing the engine.
+```
 
-
-
-
-
+baseline
+```
+{
+  "n": 30,
+  "overall_pass_rate": 0.3333,
+  "overall_correct": 10,
+  "agent_errors": 0,
+  "per_iteration_pass_rate": [
+    {
+      "iteration": 0,
+      "n_correct": 10,
+      "n": 30,
+      "pass_rate": 0.3333
+    },
+    {
+      "iteration": 1,
+      "n_correct": 10,
+      "n": 30,
+      "pass_rate": 0.3333
+    },
+    {
+      "iteration": 2,
+      "n_correct": 10,
+      "n": 30,
+      "pass_rate": 0.3333
+    }
+  ],
+  "candidate_count_distribution": {
+    "1": 19,
+    "2": 5,
+    "3": 6
+  }
+}
 
 ```
-evgeny@computeinstance-e00m2j5x6myy7h1py7:~/mlops-assignment$ uv run evals/run_eval.py 
-Loaded 30 eval questions from /home/evgeny/mlops-assignment/evals/eval_set.jsonl
-[1/30] formula_1: What is the coordinates location of the circuits for Austral...
-[2/30] superhero: List down Ajax's superpowers....
-[3/30] california_schools: List the top five schools, by descending order, from the hig...
-[4/30] financial: What is the average number of crimes committed in 1995 in re...
-[5/30] financial: How many male clients in 'Hl.m. Praha' district?...
-[6/30] formula_1: What is the average fastest lap time in seconds for Lewis Ha...
-[7/30] formula_1: From race no. 50 to 100, how many finishers have been disqua...
-[8/30] student_club: Calculate the difference of the total amount spent in all ev...
-[9/30] california_schools: What is the complete address of the school with the lowest e...
-[10/30] toxicology: Calculate the percentage of carcinogenic molecules which con...
-[11/30] codebase_community: How many users received commentator badges in 2014?...
-[12/30] thrombosis_prediction: Among the patients with a normal Ig G level, how many of the...
-[13/30] superhero: How many superheroes have the super power of "Super Strength...
-[14/30] card_games: Please list the name of the cards in the set Coldsnap with t...
-[15/30] thrombosis_prediction: For all patients with normal uric acid (UA), what is the ave...
-[16/30] codebase_community: User No.23853 gave a comment to a post at 9:08:18 on 2013/7/...
-[17/30] student_club: How many members of Business have the Medium size of tee shi...
-[18/30] card_games: What is the type of the card "Ancestor's Chosen" as original...
-[19/30] california_schools: Which active district has the highest average score in Readi...
-[20/30] financial: Please provide the IDs of the 3 female clients with the larg...
-[21/30] formula_1: Among all the lap records set on various circuits, what is t...
-[22/30] superhero: In superheroes with missing weight data, calculate the diffe...
-[23/30] student_club: In the College of Agriculture and Applied Sciences, how many...
-[24/30] codebase_community: Mention the display name and location of the user who owned ...
-[25/30] thrombosis_prediction: List all patients who were followed up at the outpatient cli...
-[26/30] toxicology: Among the molecules with element Calcium, are they mostly ca...
-[27/30] student_club: Please list the full names of the students in the Student_Cl...
-[28/30] card_games: List all the mythic rarity print cards banned in gladiator f...
-[29/30] codebase_community: Among posts by Harvey Motulsky and Noah Snyder, which one ha...
-[30/30] codebase_community: Mention the reputation of users who had obtained the badge o...
-Wrote /home/evgeny/mlops-assignment/results/eval_baseline.json
+
+after tuning
+
+```
 {
   "n": 30,
   "overall_pass_rate": 0.3333,
@@ -92,4 +95,25 @@ Wrote /home/evgeny/mlops-assignment/results/eval_baseline.json
     "3": 7
   }
 }
+```
+
+
+```
+evgeny@computeinstance-e00m2j5x6myy7h1py7:~/mlops-assignment$ uv run python load_test/driver.py --rps 10 --duration 300
+{
+  "requested_rps": 10.0,
+  "duration_seconds": 300,
+  "wall_clock_seconds": 357.5086048940002,
+  "total_requests": 3000,
+  "achieved_rps": 8.391406413530905,
+  "ok": 2254,
+  "timeouts": 157,
+  "http_errors": 346,
+  "client_errors": 243,
+  "latency_p50": 72.88748577699971,
+  "latency_p95": 118.42832197000007,
+  "latency_p99": 120.09208480599955,
+  "latency_max": 120.72303548899981
+}
+Wrote /home/evgeny/mlops-assignment/results/load_test.json
 ```
